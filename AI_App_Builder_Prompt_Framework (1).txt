@@ -1,0 +1,351 @@
+# AI App Builder — Generic Prompt Framework
+> Replace `{{USE_CASE_DESCRIPTION}}` with your use case in every prompt.
+> The sample use case is pre-filled below as reference. Swap it for your own.
+
+---
+
+## HOW TO USE THIS FRAMEWORK
+
+| Step | What you do | What AI returns | Your action |
+|------|-------------|-----------------|-------------|
+| 01 | Paste Prompt 1 + your use case | Screen inventory + wireframe tool + wireframe prompt | Confirm or adjust screens |
+| 02 | Paste Prompt 2 + Step 01 output | Tech stack table per layer | Confirm or swap layers |
+| 03 | Paste Prompt 3 + Step 01 + 02 outputs | All code files with ⚠️ placeholders | Fill placeholders, confirm |
+| 04 | Paste Prompt 4 + Step 03 output | Full unit test suite | Run tests, ship |
+
+---
+
+## ═══════════════════════════════════
+## STEP 01 — WIREFRAME & UI DESIGN
+## ═══════════════════════════════════
+
+```
+You are a senior UI/UX architect and product designer.
+
+I will provide a use case. Your task is to:
+
+1. Analyse the use case and identify all screens, user roles, and key user journeys.
+
+2. Suggest the best wireframe/design tool from this list based on complexity:
+   - Simple MVP       → Lovable AI (lovable.dev) — prompt-to-UI
+   - Mid-complexity   → Uizard (uizard.io) — rapid screen generation
+   - Design-first     → Figma (figma.com) — full fidelity
+   - Open source      → Penpot (penpot.app) — free alternative
+   - Flow diagrams    → Whimsical (whimsical.com)
+   - Quick prototype  → v0 by Vercel (v0.dev)
+
+3. Output:
+   a) A numbered screen inventory (screen name + purpose + primary user action)
+   b) User role map: who sees/does what on each screen
+   c) Recommended wireframe tool with justification (1–2 sentences)
+   d) A ready-to-paste prompt for that tool to generate the wireframe
+
+4. End with: "✅ Wireframe prompt ready. Confirm to proceed to Tech Stack selection."
+
+--- USE CASE START ---
+1. Use Case Overview
+Goal: Enable software developers and tech leads to transform high-level requirements into detailed
+specifications using AI, ensuring faster feature development with clarity and consistency.
+
+2. Objectives
+- Clean and structure raw requirements
+- Expand high-level requirements into detailed user stories/specifications
+- Use multiple LLMs for peer review of outputs
+- Provide workflow for review and sign-off
+
+3. Functions & Roles
+- Business Analyst: Generates detailed user story via AI, reviews/edits, submits for review
+- Business Reviewer: Reviews user story, provides sign-off
+
+4. Workflow
+Step 1 – Login Page: Role-based login for Business Analyst and Reviewer
+Step 2 – Requirement Input: Feature title + Raw requirement text
+Step 3 – AI-Generated Specification: Refined requirement description, functional components,
+          non-functional requirements, roles & permissions, integration points,
+          error handling, accessibility, acceptance criteria (Given-When-Then)
+Step 4 – Reviewer Screen: AI Reviewer One, AI Reviewer Two, Human Reviewer with
+          feedback/sign-off workflow
+Step 5 – Feedback Incorporation: Analyst feeds reviewer feedback back into AI,
+          revised story generated, resubmitted for sign-off
+--- USE CASE END ---
+```
+
+> ✏️ **Developer note:** Replace everything between `--- USE CASE START ---` and `--- USE CASE END ---` with your own use case description. Keep the delimiters.
+
+---
+
+## ═══════════════════════════════════
+## STEP 02 — TECH STACK SELECTION
+## ═══════════════════════════════════
+
+> Paste this after Step 01 is confirmed. Fill in the two placeholders.
+
+```
+You are a solutions architect specialising in full-stack AI applications.
+
+Given the confirmed wireframe/screens for the use case below, recommend a tech stack for EACH layer.
+For every layer suggest:
+  - Primary choice (free/open source preferred)
+  - Alternative (if primary has limitations)
+  - Justification (1 line)
+
+Layers to cover:
+  [FRONTEND]         UI framework, component library, styling
+  [BACKEND/API]      Server, REST/GraphQL, auth
+  [DATABASE]         Primary DB, vector DB (if RAG needed)
+  [LLM LAYER]        LLM provider(s), model choice, orchestration framework
+  [RAG PIPELINE]     Chunking strategy, embedding model, retrieval approach
+  [AGENT FRAMEWORK]  If multi-agent needed: CrewAI / AutoGen / LangGraph
+  [DEPLOYMENT]       Hosting, CI/CD (free tier first)
+  [MONITORING]       Logging, LLM eval, tracing
+
+Constraints:
+  - Prefer free/open-source tiers
+  - Must be deployable by a solo developer in < 1 day
+  - Flag any vendor lock-in risks
+  - Prefer tools that have active communities and good docs
+
+Output as a clean markdown table:
+| Layer | Primary Choice | Alternative | Why |
+
+Then summarise the full data flow in 3–5 sentences (user action → backend → LLM → response).
+
+End with: "Do you want to swap any layer? Confirm to proceed to full code generation."
+
+--- CONFIRMED SCREENS FROM STEP 01 ---
+{{PASTE_SCREEN_LIST_FROM_STEP_01}}
+
+--- USE CASE ---
+[Paste your use case here — same text as Step 01]
+```
+
+---
+
+## ═══════════════════════════════════
+## STEP 03 — FULL CODE GENERATION
+## ═══════════════════════════════════
+
+> Paste this after Step 02 stack is confirmed. Fill in the three placeholders.
+
+```
+You are a senior full-stack developer and AI engineer.
+
+Generate COMPLETE, WORKING, production-ready code for the use case and confirmed tech stack below.
+
+═══════════════════════════════════════
+STRICT OUTPUT RULES — follow exactly:
+═══════════════════════════════════════
+
+RULE 1 — COMPLETE FILES ONLY
+Output ALL files needed to run the app end-to-end. Do not skip any file.
+Each file begins with: // FILE: relative/path/filename.ext
+
+RULE 2 — PLACEHOLDER FORMAT
+Every placeholder must use this exact 3-line format:
+  // ⚠️ PLACEHOLDER: [VARIABLE_NAME] — [what it is]
+  // 📌 HOW: [one-line instruction telling developer exactly where to get this value]
+  const VARIABLE_NAME = "YOUR_VALUE_HERE";
+
+RULE 3 — LOGIC COMMENTS
+Every non-trivial logic block must have a comment above it:
+  // LOGIC: [plain English description of what this block does and why]
+
+RULE 4 — LLM CALL FORMAT
+Every LLM API call must be preceded by:
+  // ━━━ LLM CALL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Model  : {{LLM_MODEL}}
+  // Purpose: [what you are asking the model to do]
+  // Input  : [what is in the prompt — user data, context, instructions]
+  // Output : [expected response format — JSON / markdown / plain text]
+  // ⚠️ PLACEHOLDER: LLM_API_KEY — get from [provider dashboard URL]
+  // ⚠️ PLACEHOLDER: LLM_MODEL — e.g. "gpt-4o-mini" | "gemini-1.5-flash" | "llama3-8b-8192"
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RULE 5 — RAG PIPELINE FORMAT
+Every RAG step must be labelled:
+  // ━━━ RAG STEP [n]: [Step Name] ━━━━━━━━━━━━━━━━━━━━━━━
+  // ⚠️ PLACEHOLDER: EMBEDDING_MODEL — e.g. "text-embedding-3-small" or "nomic-embed-text"
+  // ⚠️ PLACEHOLDER: VECTOR_DB_URL — your ChromaDB / pgvector connection string
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RAG Steps to label:
+  1. Document Ingestion & Chunking
+  2. Embedding Generation
+  3. Vector Store Upsert
+  4. Query Embedding
+  5. Similarity Search / Retrieval
+  6. Context Injection into Prompt
+
+RULE 6 — AUTH FORMAT
+Every auth/session section must include:
+  // ⚠️ PLACEHOLDER: JWT_SECRET — generate with:
+  //   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  // ⚠️ PLACEHOLDER: DB_URL — your database connection string
+
+RULE 7 — SETUP CHECKLIST (first file only)
+Place this at the very top of the first file:
+  /*
+  ╔══════════════════════════════════════════════════════════╗
+  ║              SETUP CHECKLIST — FILL BEFORE RUNNING       ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║ [ ] LLM_API_KEY       — [provider] API dashboard         ║
+  ║ [ ] VECTOR_DB_URL     — local ChromaDB or cloud          ║
+  ║ [ ] DB_URL            — PostgreSQL / SQLite path         ║
+  ║ [ ] JWT_SECRET        — random 32-byte hex string        ║
+  ║ [ ] [other keys]      — [where to get them]              ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║ Install : npm install  OR  pip install -r requirements.txt║
+  ║ Start   : [exact start command]                          ║
+  ╚══════════════════════════════════════════════════════════╝
+  */
+
+RULE 8 — ENVIRONMENT FILE
+Include a `.env.example` file listing ALL environment variables with comments:
+  LLM_API_KEY=         # Your OpenAI / Gemini / Groq API key
+  LLM_MODEL=           # Model name e.g. gpt-4o-mini
+  DB_URL=              # Database connection string
+  JWT_SECRET=          # Random 32-byte hex
+  VECTOR_DB_URL=       # Vector database URL
+  PORT=3000            # Server port
+
+RULE 9 — ERROR HANDLING
+Every external call (LLM, DB, API) must be wrapped in try/catch with:
+  - A user-friendly error message returned to the UI
+  - A console.error with the raw error for debugging
+  - No secrets in error messages
+
+RULE 10 — NO SECRETS IN CODE
+Never hardcode real values. All sensitive config goes via environment variables only.
+
+═══════════════════════════════════════
+AFTER ALL FILES:
+═══════════════════════════════════════
+Output a DIRECTORY TREE of all generated files.
+Then: "✅ All files generated. Confirm to generate unit tests."
+
+--- CONFIRMED TECH STACK ---
+{{PASTE_STACK_TABLE_FROM_STEP_02}}
+
+--- CONFIRMED SCREENS ---
+{{PASTE_SCREEN_LIST_FROM_STEP_01}}
+
+--- USE CASE ---
+[Paste your use case here — same text as Step 01]
+```
+
+---
+
+## ═══════════════════════════════════
+## STEP 04 — UNIT TEST GENERATION
+## ═══════════════════════════════════
+
+> Paste this after reviewing the generated code. Fill in the two placeholders.
+
+```
+You are a senior QA engineer and test automation expert.
+
+Generate a COMPLETE unit test suite for the code generated above.
+
+═══════════════════════════════════════
+TEST COVERAGE REQUIREMENTS:
+═══════════════════════════════════════
+
+[UNIT TESTS — Core Logic]
+  - Every utility/helper function: happy path + at least 2 edge cases
+  - Input validation functions: valid input, invalid input, boundary values, empty/null
+  - Data transformation functions: correct output shape, handles missing fields
+  - Error handling paths: does the function throw / return the expected error?
+
+[LLM / AI MOCK TESTS]
+  - Mock ALL LLM API calls — never call real API in tests
+  - Test prompt construction: is the correct system prompt and user message assembled?
+  - Test response parsing: handles well-formed response, malformed JSON, empty response
+  - Test retry logic: what happens on API timeout / 429 rate limit / network error?
+  - Test token limit guard: long input is chunked or truncated correctly
+
+[RAG PIPELINE TESTS] (if RAG is in the stack)
+  - Chunking function: correct chunk size, correct overlap, handles short documents
+  - Embedding call: mocked — checks input shape, output shape, handles embedding error
+  - Vector store upsert: correct document stored, duplicate handling
+  - Retrieval: returns expected number of results, handles empty result set
+  - End-to-end RAG query: mocked vector DB + mocked LLM → correct final answer shape
+
+[API / ROUTE TESTS]
+  - Each endpoint: 200 success, 400 bad input, 401 unauthenticated, 403 wrong role, 500 server error
+  - Auth middleware: valid JWT passes, expired JWT returns 401, no token returns 401
+  - Role-based access: Analyst can do X, Reviewer can do Y, each cannot do the other's actions
+
+[INTEGRATION TESTS]
+  - Full workflow happy path with all externals mocked
+  - Multi-step workflows: does state pass correctly between steps?
+  - Feedback loop: analyst submits → reviewer reviews → analyst revises → sign-off
+
+═══════════════════════════════════════
+OUTPUT FORMAT RULES:
+═══════════════════════════════════════
+
+1. One test file per module: // TEST FILE: tests/[module].test.[ext]
+2. Use the exact test framework from the confirmed stack:
+   - JavaScript/TypeScript → Jest or Vitest
+   - Python → pytest
+3. Structure every test file as:
+   - Mock factory at the top (shared mocks for LLM, DB, vector store)
+   - describe("[ModuleName]") blocks
+   - it("should [specific expected behaviour]") test cases
+4. Each test must have a:
+   // TEST: [what is being tested]
+   // ARRANGE / ACT / ASSERT pattern (labelled with comments)
+5. Add at the bottom of each file:
+   // COVERAGE NOTE: estimated [X]% coverage for [module] — gaps: [list any untested paths]
+
+═══════════════════════════════════════
+FINAL OUTPUT:
+═══════════════════════════════════════
+After all test files:
+  1. How to run all tests:      [exact command]
+  2. How to run with coverage:  [exact command]
+  3. How to view coverage HTML: [exact command]
+  4. Coverage gaps checklist:   manual tests recommended for [list]
+
+--- GENERATED CODE ---
+{{PASTE_ALL_GENERATED_CODE_FROM_STEP_03}}
+
+--- TECH STACK ---
+{{PASTE_STACK_TABLE_FROM_STEP_02}}
+```
+
+---
+
+## QUICK REFERENCE — FREE TOOL ECOSYSTEM
+
+### LLM Providers (free tiers)
+| Provider | Free Model | Best For |
+|----------|-----------|---------|
+| Google AI Studio | Gemini 1.5 Flash | Fast, high context window |
+| Groq | Llama 3 8B | Ultra-fast inference |
+| OpenAI | GPT-4o-mini | Reliable, well-documented |
+| Anthropic | Claude 3 Haiku | Complex reasoning |
+| Ollama | Any open model | Local, fully private |
+
+### RAG & Agent Frameworks (open source)
+| Tool | Use |
+|------|-----|
+| LangChain | LLM orchestration, chains, RAG |
+| LlamaIndex | Document ingestion + RAG pipelines |
+| CrewAI | Multi-agent workflows (role-based) |
+| AutoGen | Conversational multi-agent |
+| ChromaDB | Local vector store |
+| pgvector | Vector store inside PostgreSQL |
+
+### UI Builders (free tier)
+| Tool | Use |
+|------|-----|
+| Lovable AI | Prompt → React app |
+| v0 by Vercel | Prompt → Next.js components |
+| Bolt.new | Full-stack from prompt |
+| Streamlit | Python AI app UI |
+| Gradio | Model demo / prototype |
+
+---
+
+> **Tip:** Run the 4 steps sequentially in the same Claude/ChatGPT conversation window so the AI retains context across steps. For large codebases, start a fresh window at Step 03 and paste the outputs explicitly.
