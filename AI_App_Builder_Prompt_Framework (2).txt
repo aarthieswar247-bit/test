@@ -1,0 +1,456 @@
+# AI App Builder — Generic Prompt Framework
+> Replace `{{USE_CASE_DESCRIPTION}}` with your use case in every prompt.
+> The sample use case is pre-filled below as reference. Swap it for your own.
+
+---
+
+## HOW TO USE THIS FRAMEWORK
+
+| Step | What you do | What AI returns | Your action |
+|------|-------------|-----------------|-------------|
+| 01 | Paste Prompt 1 + your use case | Screen inventory + wireframe tool + wireframe prompt | Confirm or adjust screens |
+| 02 | Paste Prompt 2 + Step 01 output | Tech stack table per layer | Confirm or swap layers |
+| 03 | Paste Prompt 3 + Step 01 + 02 outputs | All code files with ⚠️ placeholders | Fill placeholders, confirm |
+| 04 | Paste Prompt 4 + Step 03 output | Full unit test suite | Run tests, ship |
+
+---
+
+## ═══════════════════════════════════
+## STEP 01 — WIREFRAME & UI DESIGN
+## ═══════════════════════════════════
+
+```
+You are a senior UI/UX architect and product designer.
+
+I will provide a use case. Your task is to:
+
+1. Analyse the use case and identify all screens, user roles, and key user journeys.
+
+2. Suggest the best wireframe/design tool from this list based on complexity:
+   - Simple MVP       → Lovable AI (lovable.dev) — prompt-to-UI
+   - Mid-complexity   → Uizard (uizard.io) — rapid screen generation
+   - Design-first     → Figma (figma.com) — full fidelity
+   - Open source      → Penpot (penpot.app) — free alternative
+   - Flow diagrams    → Whimsical (whimsical.com)
+   - Quick prototype  → v0 by Vercel (v0.dev)
+
+3. Output:
+   a) A numbered screen inventory (screen name + purpose + primary user action)
+   b) User role map: who sees/does what on each screen
+   c) Recommended wireframe tool with justification (1–2 sentences)
+   d) A ready-to-paste prompt for that tool to generate the wireframe
+
+4. End with: "✅ Wireframe prompt ready. Confirm to proceed to Tech Stack selection."
+
+--- USE CASE START ---
+1. Use Case Overview
+Goal: Enable software developers and tech leads to transform high-level requirements into detailed
+specifications using AI, ensuring faster feature development with clarity and consistency.
+
+2. Objectives
+- Clean and structure raw requirements
+- Expand high-level requirements into detailed user stories/specifications
+- Use multiple LLMs for peer review of outputs
+- Provide workflow for review and sign-off
+
+3. Functions & Roles
+- Business Analyst: Generates detailed user story via AI, reviews/edits, submits for review
+- Business Reviewer: Reviews user story, provides sign-off
+
+4. Workflow
+Step 1 – Login Page: Role-based login for Business Analyst and Reviewer
+Step 2 – Requirement Input: Feature title + Raw requirement text
+Step 3 – AI-Generated Specification: Refined requirement description, functional components,
+          non-functional requirements, roles & permissions, integration points,
+          error handling, accessibility, acceptance criteria (Given-When-Then)
+Step 4 – Reviewer Screen: AI Reviewer One, AI Reviewer Two, Human Reviewer with
+          feedback/sign-off workflow
+Step 5 – Feedback Incorporation: Analyst feeds reviewer feedback back into AI,
+          revised story generated, resubmitted for sign-off
+--- USE CASE END ---
+```
+
+> ✏️ **Developer note:** Replace everything between `--- USE CASE START ---` and `--- USE CASE END ---` with your own use case description. Keep the delimiters.
+
+---
+
+## ═══════════════════════════════════
+## STEP 02 — TECH STACK SELECTION
+## ═══════════════════════════════════
+
+> Paste this after Step 01 is confirmed. Fill in the two placeholders.
+> ⚙️ **Scoped for 3-hour assignment delivery — localhost only, no JWT, no CI/CD.**
+
+```
+You are a solutions architect specialising in full-stack AI applications.
+
+Given the confirmed wireframe/screens for the use case below, recommend a tech stack for EACH layer.
+For every layer suggest:
+  - Primary choice (free/open source preferred)
+  - Alternative (if primary has limitations)
+  - Justification (1 line)
+
+Layers to cover:
+  [FRONTEND]         UI framework, component library, styling
+  [BACKEND/API]      Server, REST/GraphQL, auth (form-based session — NO JWT)
+  [DATABASE]         SQLite only — no migrations, no external DB server
+  [LLM LAYER]        LLM provider(s), model choice, orchestration framework
+  [RAG PIPELINE]     Chunking strategy, local embedding model, retrieval approach
+  [AGENT FRAMEWORK]  If multi-agent needed: CrewAI / AutoGen / LangGraph
+  [DEPLOYMENT]       Localhost only — NO cloud deployment, NO CI/CD
+  [MONITORING]       Console logging only
+
+Confirmed Tech Stack (3-hour scope):
+
+| Layer             | Primary Choice                                      | Alternative                        | Why                                                                 |
+|-------------------|-----------------------------------------------------|------------------------------------|---------------------------------------------------------------------|
+| FRONTEND          | React 18 + Vite + React Router v6                   | —                                  | Instant HMR, zero config, fast to scaffold                          |
+| Component Library | shadcn/ui + Tailwind CSS                            | —                                  | Copy-paste components, no runtime overhead, consistent styling      |
+| BACKEND/API       | FastAPI (Python)                                    | Flask                              | Async-native, auto OpenAPI docs, direct LangChain integration       |
+| AUTH              | Form-based session (Starlette SessionMiddleware + signed cookie) | Flask-Login       | No JWT — server-side session with role claim; zero token plumbing   |
+| DATABASE          | SQLite via SQLAlchemy (`create_all()`, no Alembic)  | —                                  | Zero setup, single `.db` file, delete to reset                      |
+| VECTOR DB         | ChromaDB (in-memory, no persistence)                | —                                  | No config, no extra service; data lives for the session             |
+| LLM LAYER         | Groq API — `llama3-8b-8192` (free tier)             | Google Gemini 1.5 Flash (free)     | ~300 tok/s inference; one `GROQ_API_KEY` env var only               |
+| LLM ORCHESTRATION | LangChain (`LLMChain` + `PromptTemplate`)           | —                                  | Structured JSON spec output in a single chain call                  |
+| RAG PIPELINE      | LangChain + ChromaDB in-memory + `sentence-transformers` (local) | OpenAI embeddings | Fully offline embeddings — no extra API key required                |
+| AGENT FRAMEWORK   | CrewAI (2 agents: Critical Reviewer + Completeness Reviewer) | LangChain multi-prompt | Matches the two AI reviewer roles with distinct personas            |
+| DEPLOYMENT        | Localhost — `uvicorn main:app --reload` + `npm run dev` | —                              | 3-hour scope; no cloud, no Docker, no CI/CD                         |
+| MONITORING        | Python `logging` to console                         | —                                  | Zero setup; sufficient for assignment demo                          |
+
+Constraints:
+  - NO JWT — use form-based session authentication (Starlette SessionMiddleware + signed cookie)
+  - Database: SQLite only (SQLAlchemy create_all, no Alembic migrations)
+  - NO CI/CD pipeline
+  - NO cloud deployment — localhost only
+  - Must run with exactly 2 commands: `pip install -r requirements.txt && uvicorn main:app --reload` and `npm install && npm run dev`
+  - Prefer free/open-source, actively maintained tools
+
+Output as a clean markdown table:
+| Layer | Primary Choice | Alternative | Why |
+
+Then summarise the full data flow in 3–5 sentences (user action → backend → LLM → response).
+
+End with: "Do you want to swap any layer? Confirm to proceed to full code generation."
+
+--- CONFIRMED SCREENS FROM STEP 01 ---
+1. Login / Role Select
+2. Analyst Dashboard
+3. Requirement Input
+4. AI-Generated Specification View
+5. Reviewer Dashboard
+6. Review Screen (Multi-Panel: AI Reviewer 1 | AI Reviewer 2 | Human Review)
+7. Feedback Incorporation Screen
+8. Revised Specification Diff View
+9. Sign-off Confirmation
+
+--- USE CASE ---
+Goal: Enable software developers and tech leads to transform high-level requirements into detailed
+specifications using AI, ensuring faster feature development with clarity and consistency.
+
+Roles:
+- Business Analyst: Generates detailed user story via AI, reviews/edits, submits for review
+- Business Reviewer: Reviews user story, provides sign-off
+
+Workflow:
+Step 1 – Login: Role-based login for Business Analyst and Reviewer
+Step 2 – Requirement Input: Feature title + Raw requirement text
+Step 3 – AI-Generated Specification: Refined description, functional components, NFRs,
+         roles & permissions, integration points, error handling, accessibility,
+         acceptance criteria (Given-When-Then)
+Step 4 – Reviewer Screen: AI Reviewer One, AI Reviewer Two, Human Reviewer with
+         feedback/sign-off workflow
+Step 5 – Feedback Incorporation: Analyst feeds reviewer feedback back into AI,
+         revised story generated, resubmitted for sign-off
+```
+
+---
+
+## ═══════════════════════════════════
+## STEP 03 — FULL CODE GENERATION
+## ═══════════════════════════════════
+
+> Paste this after Step 02 stack is confirmed.
+> ⚙️ **Scoped for 3-hour delivery — SQLite, form-based session auth, localhost, no JWT, no CI/CD.**
+
+```
+You are a senior full-stack developer and AI engineer.
+
+Generate COMPLETE, WORKING, production-ready code for the use case and confirmed tech stack below.
+
+═══════════════════════════════════════
+STRICT OUTPUT RULES — follow exactly:
+═══════════════════════════════════════
+
+RULE 1 — COMPLETE FILES ONLY
+Output ALL files needed to run the app end-to-end. Do not skip any file.
+Each file begins with: # FILE: relative/path/filename.ext  (Python) or // FILE: (JS/TS)
+
+RULE 2 — PLACEHOLDER FORMAT
+Every placeholder must use this exact 3-line format:
+  # ⚠️ PLACEHOLDER: [VARIABLE_NAME] — [what it is]
+  # 📌 HOW: [one-line instruction telling developer exactly where to get this value]
+  VARIABLE_NAME = "YOUR_VALUE_HERE"
+
+RULE 3 — LOGIC COMMENTS
+Every non-trivial logic block must have a comment above it:
+  # LOGIC: [plain English description of what this block does and why]
+
+RULE 4 — LLM CALL FORMAT
+Every LLM API call must be preceded by:
+  # ━━━ LLM CALL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Model  : llama3-8b-8192 (Groq)
+  # Purpose: [what you are asking the model to do]
+  # Input  : [what is in the prompt — user data, context, instructions]
+  # Output : [expected response format — JSON / markdown / plain text]
+  # ⚠️ PLACEHOLDER: GROQ_API_KEY — get from console.groq.com/keys
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RULE 5 — RAG PIPELINE FORMAT
+Every RAG step must be labelled:
+  # ━━━ RAG STEP [n]: [Step Name] ━━━━━━━━━━━━━━━━━━━━━━━
+  # Embedding: sentence-transformers/all-MiniLM-L6-v2 (local, no API key)
+  # Vector DB: ChromaDB in-memory
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RAG Steps to label:
+  1. Document Ingestion & Chunking
+  2. Embedding Generation
+  3. Vector Store Upsert
+  4. Query Embedding
+  5. Similarity Search / Retrieval
+  6. Context Injection into Prompt
+
+RULE 6 — AUTH FORMAT (FORM-BASED SESSION — NO JWT)
+Every auth/session section must include:
+  # ⚠️ PLACEHOLDER: SESSION_SECRET_KEY — generate with:
+  #   python -c "import secrets; print(secrets.token_hex(32))"
+  # Auth method: Starlette SessionMiddleware + signed cookie
+  # Role stored in session: request.session["role"] == "analyst" | "reviewer"
+  # NO JWT tokens — session is server-side, cookie is signed with SESSION_SECRET_KEY
+
+RULE 7 — SETUP CHECKLIST (first file only)
+Place this at the very top of the first file (main.py):
+  """
+  ╔══════════════════════════════════════════════════════════╗
+  ║         SETUP CHECKLIST — FILL BEFORE RUNNING            ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║ [ ] GROQ_API_KEY    — console.groq.com/keys (free)        ║
+  ║ [ ] SESSION_SECRET  — run: python -c "import secrets;    ║
+  ║                        print(secrets.token_hex(32))"      ║
+  ║ [ ] SQLite DB       — auto-created as app.db on startup   ║
+  ║ [ ] ChromaDB        — in-memory, no setup needed          ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║ Backend : pip install -r requirements.txt                 ║
+  ║           uvicorn main:app --reload --port 8000           ║
+  ║ Frontend: npm install && npm run dev                      ║
+  ╚══════════════════════════════════════════════════════════╝
+  """
+
+RULE 8 — ENVIRONMENT FILE
+Include a `.env.example` file listing ALL environment variables:
+  GROQ_API_KEY=        # Your Groq API key — console.groq.com/keys
+  GROQ_MODEL=llama3-8b-8192  # Free, fast Groq model
+  SESSION_SECRET_KEY=  # Random 32-byte hex — python -c "import secrets; print(secrets.token_hex(32))"
+  SQLITE_DB_PATH=./app.db    # SQLite file path — auto-created on first run
+  BACKEND_PORT=8000
+  FRONTEND_PORT=5173
+
+RULE 9 — ERROR HANDLING
+Every external call (LLM, DB, ChromaDB) must be wrapped in try/except with:
+  - A user-friendly error message returned to the UI (no stack traces)
+  - logging.error() with the raw error for debugging
+  - No secrets or internal paths in error messages
+
+RULE 10 — NO SECRETS IN CODE
+Never hardcode real values. All sensitive config via environment variables using python-dotenv.
+
+RULE 11 — STACK ENFORCEMENT
+  - Backend: FastAPI + Starlette SessionMiddleware (NO JWT, NO OAuth)
+  - Database: SQLite via SQLAlchemy with create_all() on startup (NO Alembic, NO PostgreSQL)
+  - Auth: Form POST login → session cookie with {user_id, role} (NO token in response body)
+  - Vector DB: ChromaDB client = chromadb.Client() in-memory (NO persistence path)
+  - Embeddings: SentenceTransformer("all-MiniLM-L6-v2") local model (NO OpenAI embeddings)
+  - LLM: ChatGroq(model="llama3-8b-8192") via LangChain (NO other LLM providers)
+  - Agents: CrewAI with 2 agents — "Critical Reviewer" and "Completeness Reviewer"
+  - Frontend: React 18 + Vite + React Router v6 + shadcn/ui + Tailwind CSS
+
+═══════════════════════════════════════
+AFTER ALL FILES:
+═══════════════════════════════════════
+Output a DIRECTORY TREE of all generated files.
+Then: "✅ All files generated. Confirm to generate unit tests."
+
+--- CONFIRMED TECH STACK ---
+| Layer             | Primary Choice                                                  |
+|-------------------|-----------------------------------------------------------------|
+| FRONTEND          | React 18 + Vite + React Router v6                               |
+| Component Library | shadcn/ui + Tailwind CSS                                        |
+| BACKEND/API       | FastAPI (Python 3.11)                                           |
+| AUTH              | Form-based session (Starlette SessionMiddleware + signed cookie) |
+| DATABASE          | SQLite via SQLAlchemy (create_all, no migrations)               |
+| VECTOR DB         | ChromaDB in-memory (chromadb.Client())                          |
+| LLM               | Groq API — llama3-8b-8192 via LangChain ChatGroq                |
+| RAG EMBEDDINGS    | sentence-transformers all-MiniLM-L6-v2 (local, no API key)     |
+| AGENT FRAMEWORK   | CrewAI — 2 agents (Critical Reviewer + Completeness Reviewer)   |
+| DEPLOYMENT        | Localhost only — uvicorn + npm run dev                          |
+| MONITORING        | Python logging to console                                       |
+
+--- CONFIRMED SCREENS ---
+1. Login / Role Select
+2. Analyst Dashboard
+3. Requirement Input
+4. AI-Generated Specification View
+5. Reviewer Dashboard
+6. Review Screen (Multi-Panel: AI Reviewer 1 | AI Reviewer 2 | Human Review)
+7. Feedback Incorporation Screen
+8. Revised Specification Diff View
+9. Sign-off Confirmation
+
+--- USE CASE ---
+Goal: Enable software developers and tech leads to transform high-level requirements into detailed
+specifications using AI, ensuring faster feature development with clarity and consistency.
+
+Roles:
+- Business Analyst: Generates detailed user story via AI, reviews/edits, submits for review
+- Business Reviewer: Reviews user story, provides sign-off
+
+Workflow:
+Step 1 – Login: Role-based login for Business Analyst and Reviewer
+Step 2 – Requirement Input: Feature title + Raw requirement text
+Step 3 – AI-Generated Specification: Refined description, functional components, NFRs,
+         roles & permissions, integration points, error handling, accessibility,
+         acceptance criteria (Given-When-Then)
+Step 4 – Reviewer Screen: AI Reviewer One, AI Reviewer Two, Human Reviewer with
+         feedback/sign-off workflow
+Step 5 – Feedback Incorporation: Analyst feeds reviewer feedback back into AI,
+         revised story generated, resubmitted for sign-off
+```
+
+---
+
+## ═══════════════════════════════════
+## STEP 04 — UNIT TEST GENERATION
+## ═══════════════════════════════════
+
+> Paste this after reviewing the generated code. Fill in the two placeholders.
+
+```
+You are a senior QA engineer and test automation expert.
+
+Generate a COMPLETE unit test suite for the code generated above.
+
+═══════════════════════════════════════
+TEST COVERAGE REQUIREMENTS:
+═══════════════════════════════════════
+
+[UNIT TESTS — Core Logic]
+  - Every utility/helper function: happy path + at least 2 edge cases
+  - Input validation functions: valid input, invalid input, boundary values, empty/null
+  - Data transformation functions: correct output shape, handles missing fields
+  - Error handling paths: does the function throw / return the expected error?
+
+[LLM / AI MOCK TESTS]
+  - Mock ALL LLM API calls — never call real API in tests
+  - Test prompt construction: is the correct system prompt and user message assembled?
+  - Test response parsing: handles well-formed response, malformed JSON, empty response
+  - Test retry logic: what happens on API timeout / 429 rate limit / network error?
+  - Test token limit guard: long input is chunked or truncated correctly
+
+[RAG PIPELINE TESTS] (if RAG is in the stack)
+  - Chunking function: correct chunk size, correct overlap, handles short documents
+  - Embedding call: mocked — checks input shape, output shape, handles embedding error
+  - Vector store upsert: correct document stored, duplicate handling
+  - Retrieval: returns expected number of results, handles empty result set
+  - End-to-end RAG query: mocked vector DB + mocked LLM → correct final answer shape
+
+[API / ROUTE TESTS]
+  - Each endpoint: 200 success, 400 bad input, 401 unauthenticated, 403 wrong role, 500 server error
+  - Auth middleware: valid session cookie passes, missing/invalid cookie returns 401
+  - Role-based access: Analyst can create/submit requirements, Reviewer can review/sign-off only
+  - Session tests: login sets correct role in session, logout clears session
+
+[INTEGRATION TESTS]
+  - Full workflow happy path with all externals mocked
+  - Multi-step workflows: does state pass correctly between steps?
+  - Feedback loop: analyst submits → reviewer reviews → analyst revises → sign-off
+
+═══════════════════════════════════════
+OUTPUT FORMAT RULES:
+═══════════════════════════════════════
+
+1. One test file per module: // TEST FILE: tests/[module].test.[ext]
+2. Use the exact test framework from the confirmed stack:
+   - JavaScript/TypeScript → Jest or Vitest
+   - Python → pytest
+3. Structure every test file as:
+   - Mock factory at the top (shared mocks for LLM, DB, vector store)
+   - describe("[ModuleName]") blocks
+   - it("should [specific expected behaviour]") test cases
+4. Each test must have a:
+   // TEST: [what is being tested]
+   // ARRANGE / ACT / ASSERT pattern (labelled with comments)
+5. Add at the bottom of each file:
+   // COVERAGE NOTE: estimated [X]% coverage for [module] — gaps: [list any untested paths]
+
+═══════════════════════════════════════
+FINAL OUTPUT:
+═══════════════════════════════════════
+After all test files:
+  1. How to run all tests:      [exact command]
+  2. How to run with coverage:  [exact command]
+  3. How to view coverage HTML: [exact command]
+  4. Coverage gaps checklist:   manual tests recommended for [list]
+
+--- GENERATED CODE ---
+{{PASTE_ALL_GENERATED_CODE_FROM_STEP_03}}
+
+--- TECH STACK ---
+| Layer             | Primary Choice                                                  |
+|-------------------|-----------------------------------------------------------------|
+| FRONTEND          | React 18 + Vite + React Router v6                               |
+| Component Library | shadcn/ui + Tailwind CSS                                        |
+| BACKEND/API       | FastAPI (Python 3.11)                                           |
+| AUTH              | Form-based session (Starlette SessionMiddleware + signed cookie) |
+| DATABASE          | SQLite via SQLAlchemy (create_all, no migrations)               |
+| VECTOR DB         | ChromaDB in-memory                                              |
+| LLM               | Groq API — llama3-8b-8192 via LangChain ChatGroq                |
+| RAG EMBEDDINGS    | sentence-transformers all-MiniLM-L6-v2 (local)                 |
+| AGENT FRAMEWORK   | CrewAI — Critical Reviewer + Completeness Reviewer agents       |
+| DEPLOYMENT        | Localhost only                                                  |
+```
+
+---
+
+## QUICK REFERENCE — FREE TOOL ECOSYSTEM
+
+### LLM Providers (free tiers)
+| Provider | Free Model | Best For |
+|----------|-----------|---------|
+| Google AI Studio | Gemini 1.5 Flash | Fast, high context window |
+| Groq | Llama 3 8B | Ultra-fast inference |
+| OpenAI | GPT-4o-mini | Reliable, well-documented |
+| Anthropic | Claude 3 Haiku | Complex reasoning |
+| Ollama | Any open model | Local, fully private |
+
+### RAG & Agent Frameworks (open source)
+| Tool | Use |
+|------|-----|
+| LangChain | LLM orchestration, chains, RAG |
+| LlamaIndex | Document ingestion + RAG pipelines |
+| CrewAI | Multi-agent workflows (role-based) |
+| AutoGen | Conversational multi-agent |
+| ChromaDB | Local vector store |
+| pgvector | Vector store inside PostgreSQL |
+
+### UI Builders (free tier)
+| Tool | Use |
+|------|-----|
+| Lovable AI | Prompt → React app |
+| v0 by Vercel | Prompt → Next.js components |
+| Bolt.new | Full-stack from prompt |
+| Streamlit | Python AI app UI |
+| Gradio | Model demo / prototype |
+
+---
+
+> **Tip:** Run the 4 steps sequentially in the same Claude/ChatGPT conversation window so the AI retains context across steps. For large codebases, start a fresh window at Step 03 and paste the outputs explicitly.
