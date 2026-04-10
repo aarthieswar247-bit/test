@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TelcoFlow AI | Intelligent Approval Workflow with Role-Based AI Suggestions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f6;
+            color: #1e293b;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #e4e7ec;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .logo-area {
+            padding: 24px 20px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .logo-area h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo-area p {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+        }
+
+        .role-context {
+            background: #f8fafc;
+            margin: 16px 16px 8px 16px;
+            padding: 12px;
+            border-radius: 14px;
+            border-left: 4px solid #3b82f6;
+        }
+        .role-context .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #475569;
+            font-weight: 600;
+        }
+        .role-context .role-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-item i { width: 22px; }
+        .nav-item.active { background: #eef2ff; color: #4f46e5; }
+        .nav-item:hover:not(.active) { background: #f1f5f9; }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .status-bar {
+            background: white;
+            padding: 12px 28px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title { font-weight: 700; font-size: 1.3rem; }
+        .role-switcher {
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .role-switcher select {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-weight: 500;
+            font-family: 'Inter';
+        }
+
+        .screen-container { padding: 28px; overflow-y: auto; }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border: 1px solid #eef2f6;
+        }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .layer-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 40px;
+            margin-bottom: 12px;
+        }
+        .purple-bg { background: #e9d5ff; color: #6b21a5; }
+        .teal-bg { background: #ccfbf1; color: #0f5b4b; }
+        .coral-bg { background: #ffe4e0; color: #b91c1c; }
+        .gray-bg { background: #e2e8f0; color: #334155; }
+
+        /* Approval queue step styling */
+        .approver-step {
+            border-left: 4px solid #cbd5e1;
+            padding: 18px;
+            background: #fefefe;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+        .approver-step.active-step {
+            border-left-color: #0f5b4b;
+            background: #f0fdf9;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .step-role { font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; }
+        .step-status {
+            font-size: 0.7rem;
+            background: #e2e8f0;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+        .status-approved { background: #bbf7d0; color: #166534; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
+        .status-waiting { background: #e2e8f0; color: #475569; }
+        .ai-suggestion-bubble {
+            background: #f0f9ff;
+            border-left: 3px solid #0284c7;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        button {
+            background: #4f46e5;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: white;
+            font-family: 'Inter';
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        button.secondary {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+        }
+        button.danger { background: #ef4444; }
+        .compliance-checklist {
+            background: #fefce8;
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .audit-log-entry {
+            font-family: monospace;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 8px 0;
+        }
+        @media (max-width: 1000px) { .grid-2col { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2><i class="fas fa-network-wired"></i> TelcoFlow AI</h2>
+            <p>Service Deviation & Approval</p>
+        </div>
+        <div class="role-context">
+            <div class="label">Current role context</div>
+            <div class="role-name" id="sidebarRoleLabel">Operations Manager <i class="fas fa-user-check"></i></div>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <div class="nav-item" data-screen="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard (Initiation)</div>
+            <div class="nav-item" data-screen="deviationForm"><i class="fas fa-file-alt"></i> Deviation Request</div>
+            <div class="nav-item" data-screen="reviewApproval"><i class="fas fa-clipboard-list"></i> Review & Approval</div>
+            <div class="nav-item" data-screen="executionAudit"><i class="fas fa-chart-line"></i> Execution & Audit</div>
+            <div class="nav-item" data-screen="adminConfig"><i class="fas fa-cogs"></i> Admin (Config)</div>
+        </div>
+        <div style="padding: 20px 16px; font-size: 0.7rem; color:#94a3b8; border-top:1px solid #edf2f7;">
+            <i class="fas fa-shield-alt"></i> AI-powered compliance
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="status-bar">
+            <div class="page-title" id="mainPageTitle">Review & Approval Workflow</div>
+            <div class="role-switcher">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Impersonate:</span>
+                <select id="roleSwitcherSelect">
+                    <option value="ops">Operations Manager</option>
+                    <option value="finance">Finance Team</option>
+                    <option value="network">Network Engineer</option>
+                    <option value="compliance">Compliance Officer</option>
+                    <option value="senior">Senior Approver</option>
+                    <option value="admin">System Admin</option>
+                </select>
+            </div>
+        </div>
+        <div class="screen-container" id="dynamicScreen"></div>
+    </div>
+</div>
+
+<script>
+    // ---------- GLOBAL STATE ----------
+    let currentRole = "ops";   // ops, finance, network, compliance, senior, admin
+    let currentScreen = "reviewApproval";  // default to approval screen as per requirement
+
+    // Deviation data with full workflow
+    let deviationData = {
+        id: "DEV-2410-01",
+        type: "billing credit",
+        customer: "GlobalTel Media Inc.",
+        scope: "Overcharge on bandwidth burst usage - 15% credit requested ($12,450)",
+        urgency: "High",
+        justification: "Due to erroneous metering during network upgrade, customer was overbilled. Per SLA clause 7.2, credit is applicable.",
+        policyRefs: "SLA §7.2 (Billing Accuracy), CPUC Reg 23-104, FCC Part 64",
+        status: "in_review",
+        // Queue: sequential order Ops → Finance → Network → Compliance
+        approvalQueue: [
+            { role: "ops", label: "Operations", status: "approved", timestamp: "2025-03-10 09:23", comment: "Valid incident, bandwidth telemetry confirms error. Approve credit.", aiSuggestion: "AI: Incident logs match billing discrepancy pattern. Approval recommended. Risk: Low." },
+            { role: "finance", label: "Finance", status: "pending", timestamp: null, comment: "", aiSuggestion: "AI: Credit amount $12,450 is within Tier-2 threshold ($15k). Profit margin impact minimal. Recommend approval with finance note." },
+            { role: "network", label: "Network", status: "waiting", timestamp: null, comment: "", aiSuggestion: "AI: Network telemetry shows 2.3% error margin. No infrastructure damage. Bandwidth deviation acceptable. Approve." },
+            { role: "compliance", label: "Compliance", status: "waiting", timestamp: null, comment: "", aiSuggestion: "AI: Regulatory review: SLA clause 7.2 explicitly allows credit for metering errors. GDPR & CPUC compliant. Recommend approval with audit trail." }
+        ],
+        finalApproval: false,
+        auditLog: [
+            { timestamp: "2025-03-10T09:15:00", action: "Deviation request created by Ops Manager", user: "ops_user" },
+            { timestamp: "2025-03-10T09:23:00", action: "Operations approval granted", user: "Ops Lead" }
+        ]
+    };
+
+    // Helper: check if current user can act on a given step (role match or senior)
+    function canActOnStep(stepRole) {
+        if (currentRole === "senior") return true;  // Senior approver can override any step
+        return currentRole === stepRole;
+    }
+
+    // Advance approval: approve current pending step and move to next
+    function approveStep(stepIndex) {
+        const step = deviationData.approvalQueue[stepIndex];
+        if (!step || step.status !== "pending") return false;
+        
+        // Role-based enforcement: disable for other users
+        if (!canActOnStep(step.role)) {
+            alert(`⛔ Access denied: Only ${step.label} role or Senior Approver can approve this step. Your role: ${getRoleDisplayName()}`);
+            return false;
+        }
+        
+        // Mark as approved
+        step.status = "approved";
+        step.timestamp = new Date().toLocaleString();
+        step.comment = step.comment || `Approved by ${getRoleDisplayName()}`;
+        
+        // Audit log entry
+        deviationData.auditLog.unshift({ 
+            timestamp: new Date().toISOString(), 
+            action: `${step.label} approval completed. Comment: ${step.comment}`, 
+            user: currentRole 
+        });
+        
+        // Find next waiting step and set to pending
+        let nextIndex = stepIndex + 1;
+        while (nextIndex < deviationData.approvalQueue.length && 
+               deviationData.approvalQueue[nextIndex].status !== "waiting") {
+            nextIndex++;
+        }
+        
+        if (nextIndex < deviationData.approvalQueue.length && 
+            deviationData.approvalQueue[nextIndex].status === "waiting") {
+            deviationData.approvalQueue[nextIndex].status = "pending";
+            deviationData.auditLog.unshift({ 
+                timestamp: new Date().toISOString(), 
+                action: `${deviationData.approvalQueue[nextIndex].label} step activated for review`, 
+                user: "system" 
+            });
+        }
+        
+        // Check if all steps are approved
+        let allApproved = deviationData.approvalQueue.every(s => s.status === "approved");
+        if (allApproved) {
+            deviationData.status = "approved";
+            deviationData.finalApproval = true;
+            deviationData.auditLog.unshift({ 
+                timestamp: new Date().toISOString(), 
+                action: "✅ DEVIATION FULLY APPROVED - Ready for execution & notification", 
+                user: "workflow" 
+            });
+        }
+        
+        renderCurrentScreen();
+        return true;
+    }
+    
+    // Reject step with reason
+    function rejectStep(stepIndex) {
+        const step = deviationData.approvalQueue[stepIndex];
+        if (!step || step.status !== "pending") return;
+        
+        if (!canActOnStep(step.role)) {
+            alert(`⛔ Access denied: Only ${step.label} role or Senior Approver can reject this step.`);
+            return;
+        }
+        
+        let reason = prompt("Provide rejection reason (required for compliance):");
+        if (!reason || reason.trim() === "") {
+            alert("Rejection reason is mandatory.");
+            return;
+        }
+        
+        deviationData.status = "rejected";
+        step.status = "rejected";
+        step.comment = `Rejected by ${getRoleDisplayName()}: ${reason}`;
+        deviationData.auditLog.unshift({ 
+            timestamp: new Date().toISOString(), 
+            action: `❌ Deviation REJECTED by ${step.label}: ${reason}`, 
+            user: currentRole 
+        });
+        
+        renderCurrentScreen();
+    }
+
+    function getRoleDisplayName() {
+        const map = { ops: "Operations Manager", finance: "Finance Team", network: "Network Engineer", compliance: "Compliance Officer", senior: "Senior Approver", admin: "System Admin" };
+        return map[currentRole] || "User";
+    }
+
+    function updateRoleContext() {
+        document.getElementById("sidebarRoleLabel").innerHTML = `${getRoleDisplayName()} <i class="fas fa-user-tag"></i>`;
+        renderCurrentScreen();
+    }
+
+    // ---------- SCREEN RENDERERS (12 screens across 4 layers) ----------
+    function renderDashboard() {
+        return `
+            <div class="card">
+                <div><span class="layer-badge purple-bg"><i class="fas fa-bolt"></i> INITIATION LAYER - Active Deviation Feed</span><h3>Pending & Active Deviations</h3></div>
+                <div style="margin-top:16px; background:#f1f5f9; border-radius:20px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between;"><span><i class="fas fa-exclamation-triangle"></i> <strong>${deviationData.id}</strong> - ${deviationData.type}</span><span class="step-status ${deviationData.status === 'approved' ? 'status-approved' : 'status-pending'}">${deviationData.status}</span></div>
+                    <p>Customer: ${deviationData.customer} | Urgency: ${deviationData.urgency}</p>
+                    <p>Scope: ${deviationData.scope}</p>
+                    <button class="secondary" onclick="switchScreen('deviationForm')">+ New Deviation Request</button>
+                </div>
+                <div class="ai-suggestion-bubble" style="margin-top:16px;"><i class="fas fa-robot"></i> <strong>AI Justification Assistant</strong><br>Auto-generated: "Network incident records show billing anomaly, per FCC guideline 12.3 credit eligible." Referenced: SLA 7.2, CPUC 23-104</div>
+            </div>
+        `;
+    }
+
+    function renderDeviationForm() {
+        return `
+            <div class="card"><div><span class="layer-badge purple-bg"><i class="fas fa-pen-ruler"></i> Deviation Request Form</span></div>
+            <div class="grid-2col">
+                <div><label>Deviation Type</label><select id="devType" style="width:100%; padding:8px; border-radius:12px;"><option>billing credit</option><option>bandwidth</option><option>SLA waiver</option><option>content access</option><option>KYC deferral</option></select>
+                <label>Customer</label><input id="devCust" value="GlobalTel Media Inc." style="width:100%; padding:8px; border-radius:12px;">
+                <label>Scope</label><textarea rows="2" style="width:100%; border-radius:12px;">Overcharge on bandwidth burst usage - 15% credit requested</textarea>
+                <label>Urgency</label><select><option>High</option><option>Medium</option></select>
+                </div>
+                <div class="ai-suggestion-bubble"><i class="fas fa-magic"></i> <strong>AI Justification Panel (editable)</strong><textarea rows="4" style="width:100%; border-radius:12px; padding:8px;">Due to erroneous metering during network upgrade, customer was overbilled by approx $12k. Per SLA clause 7.2, credit is applicable. Compliance reference: CPUC 23-104</textarea><br><span class="step-status">Policy clauses: SLA §7.2, Billing Accuracy Framework</span><br><button style="margin-top:10px;">Re-generate Justification</button></div>
+            </div>
+            <button onclick="alert('Deviation request submitted (simulated)')">Submit Request →</button>
+            </div>
+        `;
+    }
+
+    // Enhanced Review & Approval Screen with role-specific AI suggestions & disabled buttons for non-authorized users
+    function renderReviewApproval() {
+        const queue = deviationData.approvalQueue;
+        let queueHtml = `<div><span class="layer-badge teal-bg"><i class="fas fa-check-double"></i> Multi-Level Sequential Approval (Ops → Finance → Network → Compliance)</span></div>`;
+        
+        queue.forEach((step, idx) => {
+            let stepClass = "approver-step";
+            const isActive = (step.status === "pending");
+            if (isActive) stepClass += " active-step";
+            
+            let statusText = "";
+            let badgeClass = "";
+            if (step.status === "approved") { statusText = "✓ Approved"; badgeClass = "status-approved"; }
+            else if (step.status === "pending") { statusText = "⏳ Pending Approval"; badgeClass = "status-pending"; }
+            else if (step.status === "rejected") { statusText = "✗ Rejected"; badgeClass = "status-pending"; }
+            else { statusText = "⏱ Waiting"; badgeClass = ""; }
+            
+            // Determine if current user can approve/reject this specific step
+            const userCanAct = (isActive && canActOnStep(step.role));
+            // For disabled message tooltip
+            const disableReason = (!isActive) ? "Step not yet active" : (!canActOnStep(step.role) ? `Only ${step.label} or Senior Approver can act` : "");
+            
+            queueHtml += `
+            <div class="${stepClass}">
+                <div class="step-role">
+                    <span><i class="fas fa-user-check"></i> ${step.label} Role</span>
+                    <span class="step-status ${badgeClass}">${statusText}</span>
+                </div>
+                ${step.timestamp ? `<div style="font-size:0.75rem; color:#475569;"><i class="far fa-clock"></i> ${step.timestamp}</div>` : `<div style="font-size:0.75rem;">— not yet processed —</div>`}
+                ${step.comment ? `<div style="margin-top:8px;"><strong>Comment:</strong> ${step.comment}</div>` : `<div><textarea id="comment_${idx}" placeholder="Add approval/rejection comment..." rows="2" style="width:100%; margin-top:8px; padding:8px; border-radius:12px; border:1px solid #e2e8f0;"></textarea></div>`}
+                
+                <!-- AI Suggestion per role (dynamic) -->
+                <div class="ai-suggestion-bubble">
+                    <i class="fas fa-brain"></i> <strong>AI Recommendation for ${step.label}</strong><br>
+                    ${step.aiSuggestion || "AI: Based on policy corpus, standard approval path recommended with low risk."}
+                </div>
+                
+                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <button onclick="window.approveStep(${idx})" ${!userCanAct ? 'disabled' : ''} 
+                        ${!userCanAct ? `title="${disableReason}"` : ""}
+                        style="${!userCanAct ? 'opacity:0.5' : ''}">
+                        <i class="fas fa-thumbs-up"></i> Approve
+                    </button>
+                    <button onclick="window.rejectStep(${idx})" ${!userCanAct ? 'disabled' : ''}
+                        ${!userCanAct ? `title="${disableReason}"` : ""}
+                        class="secondary danger" style="${!userCanAct ? 'opacity:0.5' : ''}">
+                        <i class="fas fa-thumbs-down"></i> Reject
+                    </button>
+                </div>
+                ${!userCanAct && isActive ? `<div style="font-size:0.7rem; color:#dc2626; margin-top:8px;"><i class="fas fa-lock"></i> ${disableReason}</div>` : ''}
+            </div>`;
+        });
+        
+        // Compliance Checklist + Policy Flag sidebar
+        const complianceHtml = `
+            <div class="compliance-checklist">
+                <strong><i class="fas fa-gavel"></i> Compliance Checklist (Mandatory)</strong>
+                <div><label><input type="checkbox" checked disabled> Data privacy regulation (GDPR/CCPA) review - satisfied</label></div>
+                <div><label><input type="checkbox" checked disabled> Regulatory clause §104-b referenced</label></div>
+                <div><label><input type="checkbox" disabled> Audit trail complete for finance (pending final)</label></div>
+                <small>Reference: FCC Part 64, ITU-T E.123, Local Telco Act §12</small>
+            </div>`;
+        
+        const policySidebar = `
+            <div class="ai-suggestion-bubble" style="background:#fef3c7; border-left-color:#d97706;">
+                <i class="fas fa-flag-checkered"></i> <strong>Policy Flag & Risk Analysis</strong><br>
+                ⚠️ Credit amount $12,450 exceeds standard Tier-1 threshold but within Tier-2 limit. Additional Finance sign-off required (in progress).<br>
+                ✔️ SLA deviation permissible per customer Gold tier agreement.<br>
+                🤖 AI Risk Score: 12% (Low-Medium) - Approval recommended with standard conditions.
+            </div>
+            <div class="card" style="margin-top:16px;">
+                <strong><i class="fas fa-file-contract"></i> Referenced Policy Clauses</strong>
+                <ul style="margin-top:8px; margin-left:20px;">
+                    <li>SLA §7.2 - Billing accuracy credit provisions</li>
+                    <li>CPUC Resolution TL-18965 - Metering error compensation</li>
+                    <li>Internal Finance Directive FIN-422 - Credit limits</li>
+                </ul>
+            </div>`;
+        
+        return `<div class="card">${queueHtml}</div>
+                <div class="grid-2col">
+                    <div>${complianceHtml}</div>
+                    <div>${policySidebar}</div>
+                </div>`;
+    }
+    
+    function renderExecutionAudit() {
+        let auditEntries = deviationData.auditLog.map(entry => `<div class="audit-log-entry"><i class="fas fa-history"></i> <strong>${new Date(entry.timestamp).toLocaleString()}</strong> - ${entry.action} <span style="color:#6c757d;">(actor: ${entry.user})</span></div>`).join('');
+        return `
+            <div class="card"><span class="layer-badge coral-bg"><i class="fas fa-broadcast-tower"></i> Execution & Notification</span>
+            <h4>Final Deviation Summary</h4>
+            <p><strong>ID:</strong> ${deviationData.id} | <strong>Status:</strong> ${deviationData.status} | <strong>Customer:</strong> ${deviationData.customer}</p>
+            <div class="ai-suggestion-bubble"><i class="fas fa-bell"></i> <strong>Stakeholder Alert Preview (to be sent):</strong> "Deviation ${deviationData.id} approved: Credit of $12,450 applied to GlobalTel Media. Network team: adjust bandwidth monitoring logs. Compliance audit archived."</div>
+            </div>
+            <div class="card"><span class="layer-badge coral-bg"><i class="fas fa-database"></i> Immutable Audit Log</span><div style="max-height:220px; overflow-y:auto;">${auditEntries || "<div>No entries</div>"}</div>
+            <div><input placeholder="Filter by keyword..." style="margin-top:12px; width:100%; padding:8px; border-radius:40px;"></div></div>
+            <div class="card"><span class="layer-badge coral-bg"><i class="fas fa-file-export"></i> Reports & Export</span>
+            <select style="padding:8px; border-radius:12px;"><option>PDF - FCC Regulatory Template</option><option>CSV - Full Audit Trail</option><option>JSON - Compliance Report v2.1</option></select>
+            <button style="margin-left:12px;" onclick="alert('Export simulation: report generated')">Export Report</button>
+            </div>
+        `;
+    }
+    
+    function renderAdminConfig() {
+        if (currentRole !== "admin") {
+            return `<div class="card"><i class="fas fa-lock"></i> ⚠️ Admin access restricted. Please switch to System Admin role.</div>`;
+        }
+        return `
+            <div class="card"><span class="layer-badge gray-bg"><i class="fas fa-users"></i> User & Role Management</span>
+            <div class="grid-2col"><div><strong>Role-Tier Assignment Matrix</strong><br>Ops → Tier2, Finance → Tier3, Network → Tier2, Compliance → Tier4, Senior → Tier5</div>
+            <div><select><option>Assign user to role</option></select><button>Update Matrix</button></div></div>
+            </div>
+            <div class="card"><span class="layer-badge gray-bg"><i class="fas fa-sliders-h"></i> Policy & Threshold Configuration</span>
+            <div>Billing Credit Limit: <input value="15000" style="width:100px; border-radius:8px;"> USD &nbsp;&nbsp; Bandwidth Waiver Threshold: <input value="50" style="width:80px;"> Gbps</div>
+            </div>
+            <div class="card"><span class="layer-badge gray-bg"><i class="fas fa-microchip"></i> AI Settings Panel</span>
+            <label>Prompt Template Editor</label><textarea rows="2" style="width:100%; border-radius:12px;">Generate justification referencing SLA clauses, financial impact, and regulatory corpus. Provide risk score.</textarea>
+            <label>Policy Corpus Upload</label><input type="file" disabled><br><small>Upload latest compliance PDFs / internal directives</small>
+            </div>
+        `;
+    }
+
+    function renderScreen() {
+        const container = document.getElementById("dynamicScreen");
+        let content = "";
+        if (currentScreen === "dashboard") content = renderDashboard();
+        else if (currentScreen === "deviationForm") content = renderDeviationForm();
+        else if (currentScreen === "reviewApproval") content = renderReviewApproval();
+        else if (currentScreen === "executionAudit") content = renderExecutionAudit();
+        else if (currentScreen === "adminConfig") content = renderAdminConfig();
+        else content = renderDashboard();
+        
+        container.innerHTML = content;
+        const titles = {
+            dashboard: "Active Deviation Feed (Initiation)",
+            deviationForm: "New Deviation Request Form",
+            reviewApproval: "Review & Approval - Sequential Workflow",
+            executionAudit: "Execution, Audit & Export",
+            adminConfig: "System Admin Configuration"
+        };
+        document.getElementById("mainPageTitle").innerText = titles[currentScreen] || "Workflow Console";
+        
+        document.querySelectorAll('.nav-item').forEach(el => {
+            if(el.dataset.screen === currentScreen) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+    }
+
+    // Global functions for button calls
+    window.switchScreen = (screen) => { currentScreen = screen; renderScreen(); };
+    window.approveStep = (idx) => { approveStep(idx); };
+    window.rejectStep = (idx) => { rejectStep(idx); };
+    
+    function bindNavEvents() {
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.addEventListener('click', () => { window.switchScreen(el.dataset.screen); });
+        });
+        document.getElementById("roleSwitcherSelect").addEventListener("change", (e) => {
+            currentRole = e.target.value;
+            updateRoleContext();
+            renderScreen();
+        });
+    }
+    
+    function init() {
+        bindNavEvents();
+        updateRoleContext();
+        renderScreen();
+    }
+    init();
+</script>
+</body>
+</html>
